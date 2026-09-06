@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policymap [
+<!ELEMENT policymap (policy)*>
+<!ATTLIST policymap xmlns CDATA #FIXED ''>
+<!ELEMENT policy EMPTY>
+<!ATTLIST policy xmlns CDATA #FIXED '' domain NMTOKEN #REQUIRED
+  name NMTOKEN #IMPLIED pattern CDATA #IMPLIED rights NMTOKEN #IMPLIED
+  stealth NMTOKEN #IMPLIED value CDATA #IMPLIED>
+]>
+<!--
+  Absicherung von ImageMagick fuer den Betrieb als Netzdienst.
+  Grundlage sind die Empfehlungen des ImageMagick-Projekts; ergaenzt um
+  Ressourcengrenzen gegen Dekompressionsbomben.
+-->
+<policymap>
+  <!-- Ressourcengrenzen -->
+  <policy domain="resource" name="memory" value="1GiB"/>
+  <policy domain="resource" name="map" value="2GiB"/>
+  <policy domain="resource" name="area" value="512MP"/>
+  <policy domain="resource" name="width" value="64KP"/>
+  <policy domain="resource" name="height" value="64KP"/>
+  <policy domain="resource" name="disk" value="4GiB"/>
+  <policy domain="resource" name="time" value="900"/>
+  <policy domain="resource" name="thread" value="2"/>
+  <policy domain="resource" name="list-length" value="4096"/>
+
+  <!-- Kein Zugriff auf das Netz oder auf Programme des Systems -->
+  <policy domain="delegate" rights="none" pattern="URL"/>
+  <policy domain="delegate" rights="none" pattern="HTTPS"/>
+  <policy domain="delegate" rights="none" pattern="HTTP"/>
+  <policy domain="delegate" rights="none" pattern="FTP"/>
+  <policy domain="delegate" rights="none" pattern="SHOW"/>
+  <policy domain="delegate" rights="none" pattern="WIN"/>
+
+  <!-- Formate, ueber die sich Befehle einschleusen liessen -->
+  <policy domain="coder" rights="none" pattern="URL"/>
+  <policy domain="coder" rights="none" pattern="HTTPS"/>
+  <policy domain="coder" rights="none" pattern="HTTP"/>
+  <policy domain="coder" rights="none" pattern="FTP"/>
+  <policy domain="coder" rights="none" pattern="MVG"/>
+  <policy domain="coder" rights="none" pattern="MSL"/>
+  <policy domain="coder" rights="none" pattern="TEXT"/>
+  <policy domain="coder" rights="none" pattern="SHOW"/>
+  <policy domain="coder" rights="none" pattern="WIN"/>
+  <policy domain="coder" rights="none" pattern="PLT"/>
+  <policy domain="coder" rights="none" pattern="XPS"/>
+  <policy domain="coder" rights="none" pattern="EPHEMERAL"/>
+
+  <!-- PDF, PostScript und EPS laufen ueber Ghostscript im Modus -dSAFER.
+       Lesen und Schreiben bleibt erlaubt, weil der Dienst genau dafuer da
+       ist; die Absicherung uebernimmt Ghostscript selbst. -->
+  <policy domain="coder" rights="read|write" pattern="PDF"/>
+  <policy domain="coder" rights="read|write" pattern="PS"/>
+  <policy domain="coder" rights="read|write" pattern="EPS"/>
+
+  <!-- Verzeichnisrechte -->
+  <policy domain="path" rights="none" pattern="@*"/>
+  <policy domain="system" name="shred" value="0"/>
+  <policy domain="system" name="max-memory-request" value="512MiB"/>
+  <policy domain="cache" name="memory-map" value="anonymous"/>
+  <policy domain="cache" name="synchronize" value="true"/>
+</policymap>

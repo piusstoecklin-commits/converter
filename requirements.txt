@@ -1,0 +1,37 @@
+# --- Web-Framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+jinja2==3.1.5
+
+# --- Dateityp-Erkennung ---
+python-magic==0.4.27
+
+# --- PDF-Werkzeuge ---
+pikepdf==9.4.2
+pypdf==5.1.0
+pdf2docx==0.5.8
+
+# --- Bilder ---
+Pillow==11.1.0
+pillow-heif==0.21.0
+
+# --- Daten / Tabellen ---
+openpyxl==3.1.5
+PyYAML==6.0.2
+defusedxml==0.7.1
+tomli-w==1.1.0
+
+# --- E-Mail ---
+extract-msg==0.52.0
+
+# --- Schriften ---
+fonttools==4.55.3
+brotli==1.1.0
+
+# --- Archive ---
+py7zr==0.22.0
+rarfile==4.2
+
+# --- Texterkennung ---
+ocrmypdf==16.7.0

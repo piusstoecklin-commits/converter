@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dokumentenkonverter</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="stil.css">
+</head>
+<body>
+<a class="sprungmarke" href="#hauptbereich">Zum Inhalt springen</a>
+
+<header class="kopf">
+  <div class="kopf-inhalt">
+    <div class="marke">
+      <svg class="wappen" viewBox="0 0 40 44" aria-hidden="true" focusable="false">
+        <path d="M20 2 4 8v14c0 10 7 17 16 20 9-3 16-10 16-20V8L20 2z"/>
+        <path class="wappen-innen" d="M20 12v20M12 20h16" />
+      </svg>
+      <div>
+        <p class="organisation" id="organisation">Landratsamt</p>
+        <h1 id="anwendungsname">Dokumentenkonverter</h1>
+      </div>
+    </div>
+    <p class="kopf-hinweis">
+      <strong>Verarbeitung ausschließlich auf dem eigenen Server.</strong>
+      Keine Übermittlung an Dritte, kein Benutzerkonto erforderlich.
+    </p>
+  </div>
+</header>
+
+<main id="hauptbereich">
+
+  <!-- Schritt 1: Dateien -->
+  <section class="karte" aria-labelledby="titel-dateien">
+    <div class="karte-kopf">
+      <span class="schritt" aria-hidden="true">1</span>
+      <h2 id="titel-dateien">Dateien auswählen</h2>
+    </div>
+
+    <div id="ablage" class="ablage" tabindex="0" role="button"
+         aria-describedby="ablage-hinweis">
+      <svg class="ablage-symbol" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <path d="M24 32V10m0 0-8 8m8-8 8 8"/>
+        <path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6"/>
+      </svg>
+      <p class="ablage-titel">Dateien hierher ziehen oder klicken zum Auswählen</p>
+      <p id="ablage-hinweis" class="ablage-hinweis">
+        Mehrere Dateien gleichzeitig möglich ·
+        <span id="limit-hinweis">Größe je Datei begrenzt</span>
+      </p>
+      <input type="file" id="dateiauswahl" multiple hidden>
+    </div>
+
+    <ul id="dateiliste" class="dateiliste" aria-live="polite"></ul>
+    <p id="dateiliste-leer" class="leer-hinweis">Noch keine Datei ausgewählt.</p>
+  </section>
+
+  <!-- Schritt 2: Zielformat -->
+  <section class="karte" id="karte-ziel" aria-labelledby="titel-ziel" hidden>
+    <div class="karte-kopf">
+      <span class="schritt" aria-hidden="true">2</span>
+      <h2 id="titel-ziel">Zielformat wählen</h2>
+    </div>
+
+    <div class="ziel-suche">
+      <label for="zielsuche" class="feldbeschriftung">Format suchen</label>
+      <input type="search" id="zielsuche" placeholder="z. B. PDF, DOCX, JPG …"
+             autocomplete="off" spellcheck="false">
+    </div>
+
+    <p id="ziel-status" class="hinweis" role="status"></p>
+    <div id="zielbereich" class="zielbereich"></div>
+  </section>
+
+  <!-- Schritt 3: Optionen -->
+  <section class="karte" id="karte-optionen" aria-labelledby="titel-optionen" hidden>
+    <div class="karte-kopf">
+      <span class="schritt" aria-hidden="true">3</span>
+      <h2 id="titel-optionen">Einstellungen</h2>
+    </div>
+    <div id="optionsbereich" class="optionsraster"></div>
+  </section>
+
+  <!-- Aktion -->
+  <section class="karte karte-aktion" id="karte-start" hidden>
+    <div class="aktionszeile">
+      <button type="button" id="starten" class="knopf knopf-haupt">
+        Umwandlung starten
+      </button>
+      <button type="button" id="zuruecksetzen" class="knopf knopf-still">
+        Zurücksetzen
+      </button>
+      <p id="auswahl-zusammenfassung" class="zusammenfassung" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- Ergebnis -->
+  <section class="karte" id="karte-ergebnis" aria-labelledby="titel-ergebnis" hidden>
+    <div class="karte-kopf">
+      <h2 id="titel-ergebnis">Ergebnis</h2>
+      <span id="aufbewahrung" class="aufbewahrung"></span>
+    </div>
+
+    <div class="fortschritt" id="fortschritt" hidden>
+      <div class="fortschritt-balken"><span id="fortschritt-fuellung"></span></div>
+      <p id="fortschritt-text" role="status" aria-live="polite">Wird vorbereitet …</p>
+    </div>
+
+    <div id="ergebnis-meldung" class="meldung" hidden></div>
+    <ul id="ergebnisliste" class="ergebnisliste"></ul>
+
+    <div class="ergebnis-aktionen">
+      <a id="paket-laden" class="knopf knopf-haupt" href="#" hidden download>Alle als Paket laden</a>
+      <button type="button" id="jetzt-loeschen" class="knopf knopf-warnung" hidden>
+        Dateien jetzt vom Server löschen
+      </button>
+    </div>
+  </section>
+
+  <!-- Formatübersicht -->
+  <section class="karte karte-uebersicht" aria-labelledby="titel-uebersicht">
+    <div class="karte-kopf">
+      <h2 id="titel-uebersicht">Unterstützte Formate</h2>
+      <button type="button" id="uebersicht-schalter" class="knopf knopf-still"
+              aria-expanded="false" aria-controls="uebersicht">
+        Übersicht anzeigen
+      </button>
+    </div>
+    <p id="format-zaehler" class="hinweis"></p>
+    <div id="uebersicht" class="uebersicht" hidden></div>
+  </section>
+
+</main>
+
+<footer class="fuss">
+  <p>
+    <strong>Datenschutzhinweis:</strong> Hochgeladene Dateien werden
+    ausschließlich auf diesem Server verarbeitet. Die Originale werden
+    unmittelbar nach der Umwandlung gelöscht, die Ergebnisse nach Ablauf der
+    Aufbewahrungsfrist (<span id="fuss-aufbewahrung">30</span> Minuten)
+    automatisch und unwiderruflich entfernt.
+  </p>
+  <p id="fuss-notiz" class="fuss-notiz" hidden></p>
+  <p class="fuss-version">
+    <span id="fuss-name">Dokumentenkonverter</span> · Version <span id="fuss-version">–</span>
+  </p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

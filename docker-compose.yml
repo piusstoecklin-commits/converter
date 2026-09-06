@@ -1,0 +1,91 @@
+# =====================================================================
+# Dokumentenkonverter - Betriebskonfiguration
+#
+# Start:   docker compose up -d --build
+# Aufruf:  http://<server>:8080
+# =====================================================================
+
+services:
+  konverter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dokumentenkonverter:1.0.0
+    container_name: dokumentenkonverter
+    restart: unless-stopped
+
+    ports:
+      # Standardmaessig nur ueber die Loopback-Adresse erreichbar. Der
+      # Zugriff aus dem Behoerdennetz laeuft ueber den Reverse Proxy
+      # (siehe deploy/nginx.conf). Fuer einen Test ohne Proxy die
+      # Zeile auf "8080:8080" aendern.
+      - "127.0.0.1:8080:8080"
+
+    environment:
+      # --- Beschriftung ---
+      APP_NAME: "Dokumentenkonverter"
+      ORGANISATION: "Landratsamt"
+      FOOTER_NOTE: "Bei Rueckfragen: IT-Servicedesk, Durchwahl 0000"
+
+      # --- Grenzwerte ---
+      MAX_UPLOAD_MB: "512"          # Groesse je Datei
+      MAX_FILES_PER_JOB: "50"       # Dateien je Auftrag
+      STEP_TIMEOUT: "900"           # Sekunden je Konvertierungsschritt
+      JOB_TIMEOUT: "3600"           # Sekunden je Auftrag
+      WORKERS: "4"                  # parallele Konvertierungen
+
+      # --- Aufbewahrung ---
+      RETENTION_MINUTES: "30"       # danach werden Ergebnisse geloescht
+      CLEANUP_INTERVAL: "60"
+      SHRED_FILES: "false"          # true: Inhalte vor dem Loeschen ueberschreiben
+
+      # --- Missbrauchsschutz ---
+      RATE_LIMIT_JOBS: "60"         # Auftraege je Zeitfenster und Aufrufer
+      RATE_LIMIT_WINDOW: "600"      # Zeitfenster in Sekunden
+      MAX_ACTIVE_JOBS: "200"
+      TRUST_PROXY: "true"           # nur mit vorgeschaltetem Reverse Proxy
+
+      # --- Konvertierung ---
+      MAX_PATH_LENGTH: "3"          # maximale Zahl an Zwischenschritten
+      PANDOC_SANDBOX: "1"           # Pandoc keinen Dateizugriff erlauben
+
+    volumes:
+      # Arbeitsverzeichnis. Ein tmpfs haelt die Daten ausschliesslich im
+      # Arbeitsspeicher - empfehlenswert bei besonders schutzbeduerftigen
+      # Unterlagen, erfordert aber entsprechend RAM.
+      - konverter-daten:/data/work
+      # Alternative (nichts wird auf Platte geschrieben):
+      # - type: tmpfs
+      #   target: /data/work
+      #   tmpfs:
+      #     size: 8g
+      #     mode: 0700
+
+    # --- Absicherung des Containers ---
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=2g
+      - /home/konverter:rw,nosuid,size=512m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    # --- Ressourcen ---
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 8G
+        reservations:
+          memory: 1G
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  konverter-daten:
+    driver: local
