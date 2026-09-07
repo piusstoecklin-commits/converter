@@ -15,56 +15,71 @@ ENV PYTHONUNBUFFERED=1 \
 
 # ---------------------------------------------------------------------
 # Systemprogramme
+#
+# Die Installation ist in benannte Gruppen unterteilt. Schlaegt etwas fehl,
+# nennt die letzte "### Installiere Gruppe"-Zeile im Protokoll die betroffene
+# Gruppe. Das ist bei rund 35 Paketen deutlich hilfreicher als eine einzelne
+# Sammelmeldung ueber die gesamte Liste.
+#
+# Die apt-Voreinstellungen fangen die haeufigsten Abbruchursachen ab:
+# kurze Netzaussetzer (Retries) und eine unvollstaendige IPv6-Strecke,
+# wie sie hinter Behoerden-Firewalls oft vorliegt (ForceIPv4).
+#
+# Schriften: Liberation sowie Carlito und Caladea sind metrisch kompatibel
+# zu Arial, Times, Calibri und Cambria. Ohne sie verschieben sich
+# Seitenumbrueche in Word-Dokumenten.
 # ---------------------------------------------------------------------
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    # --- Office-Dokumente ---
-    libreoffice-core \
-    libreoffice-writer \
-    libreoffice-calc \
-    libreoffice-impress \
-    libreoffice-draw \
-    libreoffice-nlpsolver \
-    default-jre-headless \
-    # --- Schriften: Liberation und Carlito/Caladea sind metrisch
-    #     kompatibel zu Arial, Times, Calibri und Cambria. Ohne sie
-    #     verschieben sich Seitenumbrueche in Word-Dokumenten. ---
-    fonts-liberation2 \
-    fonts-crosextra-carlito \
-    fonts-crosextra-caladea \
-    fonts-dejavu-core \
-    fonts-noto-core \
-    fontconfig \
-    # --- Markup und E-Books ---
-    pandoc \
-    # --- Bilder ---
-    imagemagick \
-    libheif1 \
-    libraw-bin \
-    # --- Video und Audio ---
-    ffmpeg \
-    # --- PDF ---
-    ghostscript \
-    poppler-utils \
-    qpdf \
-    pngquant \
-    unpaper \
-    # --- Texterkennung ---
-    tesseract-ocr \
-    tesseract-ocr-deu \
-    tesseract-ocr-eng \
-    tesseract-ocr-fra \
-    tesseract-ocr-ita \
-    tesseract-ocr-spa \
-    tesseract-ocr-tur \
-    tesseract-ocr-rus \
-    tesseract-ocr-osd \
-    # --- Archive ---
-    p7zip-full \
-    unar \
-    # --- Sonstiges ---
-    libmagic1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man
+RUN set -eux; \
+    printf 'Acquire::Retries "5";\nAcquire::http::Timeout "60";\nAcquire::ForceIPv4 "true";\n' \
+        > /etc/apt/apt.conf.d/99konverter; \
+    apt-get update; \
+    gruppe() { name="$1"; shift; echo "### Installiere Gruppe: ${name}"; \
+               apt-get install --no-install-recommends -y "$@"; }; \
+    gruppe "Grundwerkzeuge und Schriften" \
+        fontconfig \
+        libmagic1 \
+        fonts-liberation2 \
+        fonts-crosextra-carlito \
+        fonts-crosextra-caladea \
+        fonts-dejavu-core \
+        fonts-noto-core; \
+    gruppe "LibreOffice (Office-Dokumente)" \
+        libreoffice-core \
+        libreoffice-writer \
+        libreoffice-calc \
+        libreoffice-impress \
+        libreoffice-draw \
+        libreoffice-nlpsolver \
+        default-jre-headless; \
+    gruppe "Pandoc (Markup und E-Books)" \
+        pandoc; \
+    gruppe "Bildverarbeitung" \
+        imagemagick \
+        libheif1 \
+        libraw-bin; \
+    gruppe "Video und Audio" \
+        ffmpeg; \
+    gruppe "PDF-Werkzeuge" \
+        ghostscript \
+        poppler-utils \
+        qpdf \
+        pngquant \
+        unpaper; \
+    gruppe "Texterkennung" \
+        tesseract-ocr \
+        tesseract-ocr-deu \
+        tesseract-ocr-eng \
+        tesseract-ocr-fra \
+        tesseract-ocr-ita \
+        tesseract-ocr-spa \
+        tesseract-ocr-tur \
+        tesseract-ocr-rus \
+        tesseract-ocr-osd; \
+    gruppe "Archive" \
+        p7zip-full \
+        unar; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man
 
 # ---------------------------------------------------------------------
 # ImageMagick absichern: Bildkonvertierung darf weder Netzwerkadressen

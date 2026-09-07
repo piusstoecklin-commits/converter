@@ -295,6 +295,64 @@ curl -s http://127.0.0.1:8080/api/health
 als Prüfpunkt für die Systemüberwachung. Das Abbild bringt zusätzlich einen
 `HEALTHCHECK` mit, den Docker selbst auswertet.
 
+### Wenn der Build fehlschlägt
+
+Bricht `docker compose up -d --build` mit `exit code: 100` ab, hat **apt**
+abgebrochen — nicht die Anwendung. Die Paketliste ist bewusst in benannte
+Gruppen unterteilt; die letzte Zeile `### Installiere Gruppe: …` im Protokoll
+nennt die betroffene Gruppe. Die eigentliche Ursache steht **darüber** in der
+Ausgabe, nicht in der abschließenden `failed to solve`-Zeile.
+
+So wird sie sichtbar:
+
+```bash
+docker compose build --progress=plain 2>&1 | tail -60
+```
+
+Die drei häufigen Ursachen, in der Reihenfolge ihrer Wahrscheinlichkeit:
+
+**1. Zu wenig Plattenplatz.** Der mit Abstand häufigste Grund. Das Abbild ist
+rund 3 GB groß, beim Entpacken von LibreOffice werden zeitweise etwa 8 GB
+frei benötigt. apt meldet dann `You don't have enough free space in
+/var/cache/apt/archives/`.
+
+```bash
+df -h /var/lib/docker     # verfügbarer Platz
+docker system df          # Belegung durch Docker
+docker system prune -a    # alte Abbilder und Zwischenstände entfernen
+```
+
+**2. Kein Zugang zu den Debian-Paketquellen.** In Behördennetzen ist der
+ausgehende Verkehr meist über einen Proxy geführt, den der Build-Container
+nicht kennt. Erkennbar an `Could not connect`, `Temporary failure resolving`
+oder `Connection timed out`. Der Proxy wird dem Build so mitgeteilt:
+
+```bash
+docker build \
+  --build-arg http_proxy=http://proxy.landratsamt.intern:8080 \
+  --build-arg https_proxy=http://proxy.landratsamt.intern:8080 \
+  -t dokumentenkonverter:1.0.0 .
+```
+
+Dauerhaft gehört dieselbe Angabe in `~/.docker/config.json` unter `proxies`.
+Löst der Container keine Namen auf, fehlt meist der DNS-Server des Hauses in
+`/etc/docker/daemon.json` (`"dns": ["10.0.0.1"]`), danach
+`systemctl restart docker`.
+
+**3. Veraltete Paketlisten im Zwischenspeicher.** Nach längerer Zeit zeigen
+zwischengespeicherte Build-Schichten auf Paketversionen, die es nicht mehr
+gibt. Abhilfe:
+
+```bash
+docker compose build --no-cache
+```
+
+Ein fehlender Paketname ist dagegen **nicht** die Ursache: Sämtliche Pakete
+sind sowohl unter Debian 12 (Bookworm) als auch unter Debian 13 (Trixie)
+verfügbar, auf x86-64 wie auf ARM. Beide Debian-Stände sind geprüft — unter
+Bookworm kommen ältere Werkzeuge zum Einsatz (Pandoc 2, ImageMagick 6), die
+die Anwendung selbständig erkennt und entsprechend anspricht.
+
 ### Betrieb ohne Internetzugang
 
 Zur Laufzeit wird keine Verbindung nach außen benötigt. Für ein
